@@ -35,9 +35,9 @@ jobs:
 
       - name: Update ${{ env.BUCKET_JSON }}
         run: |
-          jq '.tools.imgopt.url = "${{ env.GITHUB_REPOSITORY_URL }}/releases/download/${{ env.VERSION }}/${{ env.PACKAGE_NAME }}-x64-win.zip"' ${{ env.BUCKET_JSON }} > temp.json
+          jq '.url = "${{ env.GITHUB_REPOSITORY_URL }}/releases/download/${{ env.VERSION }}/${{ env.PACKAGE_NAME }}-x64-win.zip"' ${{ env.BUCKET_JSON }} > temp.json
           mv temp.json ${{ env.BUCKET_JSON }}
-          jq '.tools.imgopt.hash = "'${{ env.SHA256 }}'"' ${{ env.BUCKET_JSON }} > temp.json
+          jq '.hash = "'${{ env.SHA256 }}'"' ${{ env.BUCKET_JSON }} > temp.json
           mv temp.json ${{ env.BUCKET_JSON }}
 
       - name: Commit and push if changed
