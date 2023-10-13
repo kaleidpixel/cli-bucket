@@ -2,7 +2,8 @@ name: Triggered Action
 
 on:
   repository_dispatch:
-    types: [trigger-event]
+    types:
+      - trigger-event
 env:
   GITHUB_BASE_URL: https://github.com/kaleidpixel
   PACKAGE_NAME: imgopt
