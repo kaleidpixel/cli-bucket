@@ -25,20 +25,19 @@ jobs:
         run: |
           URL=$(curl -sI ${{ env.GITHUB_REPOSITORY_URL }}/releases/latest | grep "location" | awk '{print $2}' | tr -d '\r')
           VERSION=$(echo $URL | grep -o "v[0-9]\+")
-          echo "URL=$URL" >> $GITHUB_ENV
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Download and read SHA256
         id: get-sha256
         run: |
-          SHA256=$(curl -sL ${{ env.GITHUB_REPOSITORY_URL }}/releases/download/$VERSION/${{ env.PACKAGE_NAME }}-x64-win.zip.sha256)
+          SHA256=$(curl -sL ${{ env.GITHUB_REPOSITORY_URL }}/releases/download/${{ env.VERSION }}/${{ env.PACKAGE_NAME }}-x64-win.zip.sha256)
           echo "SHA256=$SHA256" >> $GITHUB_ENV
 
       - name: Update ${{ env.BUCKET_JSON }}
         run: |
-          jq '.tools.imgopt.url = "${{ env.GITHUB_REPOSITORY_URL }}/releases/download/'$VERSION'/${{ env.PACKAGE_NAME }}-x64-win.zip"' ${{ env.BUCKET_JSON }} > temp.json
+          jq '.tools.imgopt.url = "${{ env.GITHUB_REPOSITORY_URL }}/releases/download/${{ env.VERSION }}/${{ env.PACKAGE_NAME }}-x64-win.zip"' ${{ env.BUCKET_JSON }} > temp.json
           mv temp.json ${{ env.BUCKET_JSON }}
-          jq '.tools.imgopt.hash = "'$SHA256'"' ${{ env.BUCKET_JSON }} > temp.json
+          jq '.tools.imgopt.hash = "'${{ env.SHA256 }}'"' ${{ env.BUCKET_JSON }} > temp.json
           mv temp.json ${{ env.BUCKET_JSON }}
 
       - name: Commit and push if changed
