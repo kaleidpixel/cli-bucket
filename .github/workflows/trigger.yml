@@ -44,6 +44,6 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add imgopt.json
+          git add ${{ env.BUCKET_JSON }}
           git commit -m "Update imgopt.json with new version $VERSION" || echo "No changes to commit"
           git push
