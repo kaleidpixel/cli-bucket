@@ -1,0 +1,49 @@
+name: Triggered Action
+
+on:
+  repository_dispatch:
+    types: [trigger-event]
+env:
+  GITHUB_BASE_URL: https://github.com/kaleidpixel
+  PACKAGE_NAME: imgopt
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create derived env variables
+        run: |
+          echo "GITHUB_REPOSITORY_URL=${{ env.GITHUB_BASE_URL }}/${{ env.PACKAGE_NAME }}" >> $GITHUB_ENV
+          echo "BUCKET_JSON=bucket/${{ env.PACKAGE_NAME }}.json" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Get redirected URL from latest release
+        id: get-url
+        run: |
+          URL=$(curl -sI ${{ env.GITHUB_REPOSITORY_URL }}/releases/latest | grep "location" | awk '{print $2}' | tr -d '\r')
+          VERSION=$(echo $URL | grep -o "v[0-9]\+")
+          echo "URL=$URL" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Download and read SHA256
+        id: get-sha256
+        run: |
+          SHA256=$(curl -sL ${{ env.GITHUB_REPOSITORY_URL }}/releases/download/$VERSION/${{ env.PACKAGE_NAME }}-x64-win.zip.sha256)
+          echo "SHA256=$SHA256" >> $GITHUB_ENV
+
+      - name: Update ${{ env.BUCKET_JSON }}
+        run: |
+          jq '.tools.imgopt.url = "${{ env.GITHUB_REPOSITORY_URL }}/releases/download/'$VERSION'/${{ env.PACKAGE_NAME }}-x64-win.zip"' ${{ env.BUCKET_JSON }} > temp.json
+          mv temp.json ${{ env.BUCKET_JSON }}
+          jq '.tools.imgopt.hash = "'$SHA256'"' ${{ env.BUCKET_JSON }} > temp.json
+          mv temp.json ${{ env.BUCKET_JSON }}
+
+      - name: Commit and push if changed
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add imgopt.json
+          git commit -m "Update imgopt.json with new version $VERSION" || echo "No changes to commit"
+          git push
