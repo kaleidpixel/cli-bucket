@@ -24,7 +24,7 @@ jobs:
         id: get-url
         run: |
           URL=$(curl -sI ${{ env.GITHUB_REPOSITORY_URL }}/releases/latest | grep "location" | awk '{print $2}' | tr -d '\r')
-          VERSION=$(echo $URL | grep -o "v[0-9]\+")
+          VERSION=$(echo $URL | grep -o "v[0-9.]\+")
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Download and read SHA256
